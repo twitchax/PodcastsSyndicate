@@ -1,0 +1,6 @@
+
+bin
+obj
+.vscode
+
+wwwroot/lib
