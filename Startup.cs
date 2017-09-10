@@ -46,7 +46,7 @@ namespace PodcastsSyndicate
 
             app.UseStaticFiles();
             
-            // Rewrite URLs with subdomains into the proper form (i.e., "mypodcast.podcastssyndicate.com/rss" +> "podcastssyndicate.com/podcast/mypodcast/rss").
+            // Rewrite URLs with subdomains into the proper form (i.e., "mypodcast.podcastssyndicate.com/rss" => "podcastssyndicate.com/podcast/mypodcast/rss").
             app.Use(HandleSubdomain);
             app.Use(HandleAuthorization);
             app.UseMvc();
