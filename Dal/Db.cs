@@ -1,3 +1,4 @@
+using System;
 using DocumentDb.Fluent;
 using Microsoft.Extensions.Configuration;
 using PodcastsSyndicate.Models;
@@ -8,7 +9,7 @@ namespace PodcastsSyndicate.Dal
     {
         public static IDatabase Self = 
             Account
-                .Connect(Helpers.Configuration["DbUri"], Helpers.Configuration["DbKey"])
+                .Connect(Environment.GetEnvironmentVariable("DbUri") ?? Helpers.Configuration["DbUri"], Environment.GetEnvironmentVariable("DbKey") ?? Helpers.Configuration["DbKey"])
                 .Database("PodcastsSyndicate");
 
         public static IDocumentCollection<User> Users = Self.Collection<User>();

@@ -5,6 +5,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using PodcastsSyndicate.Dal;
 using PodcastsSyndicate.Models;
@@ -25,6 +26,8 @@ namespace PodcastsSyndicate.Controllers
         }
 
         [HttpGet("/podcast/{podcastId}/rss")]
+        //[AcceptVerbs("GET", "OPTION", "HEAD")]
+        [HttpHead("/podcast/{podcastId}/rss")]
         [Produces("application/xml")]
         public async Task<IActionResult> GetRss(string podcastId)
         {
@@ -37,7 +40,7 @@ namespace PodcastsSyndicate.Controllers
 
             var rss = new XElement("rss"); doc.Add(rss);
             rss.SetAttributeValue(XNamespace.Xmlns + "itunes", itunes);
-            //rss.SetAttributeValue(XNamespace.Xmlns + "atom", atom);
+            rss.SetAttributeValue(XNamespace.Xmlns + "atom", atom);
             rss.SetAttributeValue("version", "2.0");
             
             var channel = new XElement("channel"); rss.Add(channel);
@@ -56,7 +59,7 @@ namespace PodcastsSyndicate.Controllers
             owner.Add(new XElement(itunes + "name", podcast.Author));
             owner.Add(new XElement(itunes + "email", podcast.AuthorEmail));
 
-            //var atomLink = new XElement(atom + "link"); atomLink.SetAttributeValue("href", $"http://rss.{podcastId}.podcastssyndicate.com"); atomLink.SetAttributeValue("rel", "self"); atomLink.SetAttributeValue("type", "application/rss+xml"); channel.Add(atomLink);
+            var atomLink = new XElement(atom + "link"); atomLink.SetAttributeValue("href", Request.Host + Request.Path); atomLink.SetAttributeValue("rel", "self"); atomLink.SetAttributeValue("type", "application/rss+xml"); channel.Add(atomLink);
             
             foreach(var category in podcast.Categories)
             {
@@ -65,18 +68,25 @@ namespace PodcastsSyndicate.Controllers
 
             foreach(var episode in podcast.Episodes.OrderByDescending(e => e.PublishDate))
             {
+                // Get size.
+                var headRequest = new HttpRequestMessage(HttpMethod.Head, episode.Link);
+                var response = await new HttpClient().SendAsync(headRequest);
+                var contentLength = response.Content.Headers.GetValues("Content-Length").First();
+                var contentType = response.Content.Headers.GetValues("Content-Type").First();
+
                 var item = new XElement("item"); channel.Add(item);
 
                 item.Add(new XElement("title", episode.Title));
                 item.Add(new XElement("link", episode.Link));
-                var enclosure = new XElement("enclosure"); enclosure.SetAttributeValue("url", episode.Link); enclosure.SetAttributeValue("length", 0); enclosure.SetAttributeValue("type", "audio/mpeg"); item.Add(enclosure);
-                item.Add(new XElement("guid", $"http://podcastssyndicate.com/podcast/{podcast.Id}/episode/{episode.Id}"));
+                var enclosure = new XElement("enclosure"); enclosure.SetAttributeValue("url", episode.Link); enclosure.SetAttributeValue("length", contentLength); enclosure.SetAttributeValue("type", contentType); item.Add(enclosure);
+                item.Add(new XElement("guid", episode.Link));
                 item.Add(new XElement("pubDate", episode.PublishDate.ToString("r")));
+                item.Add(new XElement("description", podcast.Description));
 
                 item.Add(new XElement(itunes + "author", podcast.Author));
                 item.Add(new XElement(itunes + "subtitle", episode.Subtitle));
                 item.Add(new XElement(itunes + "summary", episode.Description));
-                item.Add(new XElement(itunes + "duration", episode.Duration));
+                item.Add(new XElement(itunes + "duration", $"{episode.Duration / 3600:00}:{(episode.Duration % 3600) / 60:00}:{(episode.Duration % 3600) % 60:00}"));
                 item.Add(new XElement(itunes + "keywords", string.Join(", ", episode.Tags)));
                 var itemImage = new XElement(itunes + "image"); itemImage.SetAttributeValue("href", episode.Image); item.Add(itemImage);
             }
