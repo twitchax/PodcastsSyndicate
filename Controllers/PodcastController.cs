@@ -40,7 +40,7 @@ namespace PodcastsSyndicate.Controllers
 
             var rss = new XElement("rss"); doc.Add(rss);
             rss.SetAttributeValue(XNamespace.Xmlns + "itunes", itunes);
-            rss.SetAttributeValue(XNamespace.Xmlns + "atom", atom);
+            //rss.SetAttributeValue(XNamespace.Xmlns + "atom", atom);
             rss.SetAttributeValue("version", "2.0");
             
             var channel = new XElement("channel"); rss.Add(channel);
@@ -59,7 +59,7 @@ namespace PodcastsSyndicate.Controllers
             owner.Add(new XElement(itunes + "name", podcast.Author));
             owner.Add(new XElement(itunes + "email", podcast.AuthorEmail));
 
-            var atomLink = new XElement(atom + "link"); atomLink.SetAttributeValue("href", Request.Host + Request.Path); atomLink.SetAttributeValue("rel", "self"); atomLink.SetAttributeValue("type", "application/rss+xml"); channel.Add(atomLink);
+            //var atomLink = new XElement(atom + "link"); atomLink.SetAttributeValue("href", Request.Host + Request.Path); atomLink.SetAttributeValue("rel", "self"); atomLink.SetAttributeValue("type", "application/rss+xml"); channel.Add(atomLink);
             
             foreach(var category in podcast.Categories)
             {
