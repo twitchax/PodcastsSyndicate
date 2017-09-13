@@ -32,7 +32,9 @@ namespace PodcastsSyndicate.Controllers
         [HttpGet("/podcast/{podcastId}/rss")]
         [HttpHead("/podcast/{podcastId}/rss")]
         [Produces("application/xml")]
-        public async Task<IActionResult> GetRss(string podcastId)
+        public async Task<IActionResult> GetRss(string podcastId) => Ok((await GenerateRssXDocument(podcastId)).Root);
+
+        private static async Task<XDocument> GenerateRssXDocument(string podcastId)
         {
             var podcast = await Db.Podcasts.Document(podcastId).ReadAsync();
 
@@ -113,7 +115,7 @@ namespace PodcastsSyndicate.Controllers
                 item.Add(new XElement(itunes + "duration", $"{episode.Duration / 3600:00}:{(episode.Duration % 3600) / 60:00}:{(episode.Duration % 3600) % 60:00}"));
             }
 
-            return Ok(doc.Root);
+            return doc;
         }
     }
 }
