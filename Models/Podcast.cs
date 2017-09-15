@@ -22,5 +22,17 @@ namespace PodcastsSyndicate.Models
         public List<string> Categories { get; set; }
 
         public List<Episode> Episodes { get; set; }
+
+        // Helpers methods.
+
+        public string GetCacheKey()
+        {
+            return GetCacheKey(Id);
+        }
+
+        public static string GetCacheKey(string podcastId)
+        {
+            return $"rss_{podcastId}";
+        }
     }
 }

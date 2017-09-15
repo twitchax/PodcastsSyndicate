@@ -29,6 +29,14 @@ namespace PodcastsSyndicate.Controllers
             return Created($"/podcast/{podcastId}", await Db.Podcasts.Document(podcastId).ReadAsync());
         }
 
+        [HttpDelete("/podcast/{podcastId}/cache")]
+        public async Task<IActionResult> Recache(string podcastId)
+        {
+            await Redis.KeyDeleteAsync(Podcast.GetCacheKey(podcastId));
+
+            return Ok();
+        }
+
         [HttpGet("/podcast/{podcastId}/rss")]
         [HttpHead("/podcast/{podcastId}/rss")]
         [Produces("application/xml")]
@@ -36,11 +44,9 @@ namespace PodcastsSyndicate.Controllers
 
         private static async Task<XDocument> GetRssXDocument(string podcastId)
         {
-            var cacheKey = $"rss_{podcastId}";
-
-            var docString = await Redis.GetOrAddAsync(cacheKey, async () => {
+            var docString = await Redis.GetOrAddAsync(Podcast.GetCacheKey(podcastId), async () => {
                 return await GenerateRss(podcastId);
-            }, TimeSpan.FromHours(1));
+            }, TimeSpan.FromDays(1));
 
             return XDocument.Parse(docString);
         }
