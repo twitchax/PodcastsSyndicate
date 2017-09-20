@@ -4,4 +4,4 @@ set -e
 
 ./build.sh
 
-docker push twitchax/podcastssyndicate
+docker push twitchax/podcastssyndicate:latest
