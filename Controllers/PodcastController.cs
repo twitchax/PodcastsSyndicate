@@ -37,6 +37,12 @@ namespace PodcastsSyndicate.Controllers
             return Ok();
         }
 
+        [HttpGet("/podcast/{podcastId}/cache/exists")]
+        public async Task<IActionResult> CacheExists(string podcastId)
+        {
+            return Ok(await Redis.KeyExistsAsync(Podcast.GetCacheKey(podcastId)));
+        }
+        
         [HttpGet("/podcast/{podcastId}/rss")]
         [HttpHead("/podcast/{podcastId}/rss")]
         [Produces("application/xml")]
@@ -114,11 +120,16 @@ namespace PodcastsSyndicate.Controllers
 
                 // Item declaration.
 
+                //var audioLinkMask = $"http://podcastssyndicate.com/podcast/{podcast.Id}/episode/{episode.Id}/audio";
+                //var imageLinkMask = $"http://podcastssyndicate.com/podcast/{podcast.Id}/episode/{episode.Id}/image";
+                var audioLinkMask = episode.Link;
+                var imageLinkMask = episode.Image;
+
                 var item = new XElement("item"); channel.Add(item);
                 item.Add(new XElement("title", episode.Title));
-                item.Add(new XElement("link", episode.Link));
-                var enclosure = new XElement("enclosure"); enclosure.SetAttributeValue("url", episode.Link); enclosure.SetAttributeValue("length", contentLength); enclosure.SetAttributeValue("type", contentType); item.Add(enclosure);
-                item.Add(new XElement("guid", episode.Link));
+                item.Add(new XElement("link", audioLinkMask));
+                var enclosure = new XElement("enclosure"); enclosure.SetAttributeValue("url", audioLinkMask); enclosure.SetAttributeValue("length", contentLength); enclosure.SetAttributeValue("type", contentType); item.Add(enclosure);
+                item.Add(new XElement("guid", audioLinkMask));
                 item.Add(new XElement("pubDate", episode.PublishDate.ToString("r")));
                 item.Add(new XElement("description", podcast.Description));
 
@@ -128,7 +139,7 @@ namespace PodcastsSyndicate.Controllers
                 item.Add(new XElement(itunes + "subtitle", episode.Subtitle));
                 item.Add(new XElement(itunes + "summary", episode.Description));
                 item.Add(new XElement(itunes + "keywords", string.Join(", ", episode.Tags)));
-                var itemImage = new XElement(itunes + "image"); itemImage.SetAttributeValue("href", episode.Image); item.Add(itemImage);
+                var itemImage = new XElement(itunes + "image"); itemImage.SetAttributeValue("href", imageLinkMask); item.Add(itemImage);
                 item.Add(new XElement(itunes + "duration", $"{episode.Duration / 3600:00}:{(episode.Duration % 3600) / 60:00}:{(episode.Duration % 3600) % 60:00}"));
             }
 
@@ -136,3 +147,9 @@ namespace PodcastsSyndicate.Controllers
         }
     }
 }
+
+// [HttpGet("/podcast/{podcastId}/cache/exists")]
+// public async Task<IActionResult> Exists(string podcastId)
+// {
+//     return Ok(await Redis.KeyExistsAsync(Podcast.GetCacheKey(podcastId)));
+// }

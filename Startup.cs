@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -11,6 +12,7 @@ using Microsoft.AspNetCore.Rewrite;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using PodcastsSyndicate.Dal;
 
 namespace PodcastsSyndicate
@@ -32,6 +34,8 @@ namespace PodcastsSyndicate
             services.AddMvc().AddXmlSerializerFormatters().AddJsonOptions(options => {
                 options.SerializerSettings.Formatting = Formatting.Indented;
             });
+
+            services.AddApplicationInsightsTelemetry(Configuration);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -55,6 +59,14 @@ namespace PodcastsSyndicate
             // Rewrite URLs with subdomains into the proper form (i.e., "mypodcast.podcastssyndicate.com/rss" => "podcastssyndicate.com/podcast/mypodcast/rss").
             app.Use(HandleSubdomain);
             app.Use(HandleAuthorization);
+
+            app.UseProxy<string, string>(@"\/podcast\/(.*)\/episode\/(.*)\/audio", async (args) => {
+                return (await Db.Podcasts.Document(args[0]).ReadAsync()).Episodes.FirstOrDefault(e => e.Id == args[1]).Link;
+            });
+
+            app.UseProxy<string, string>(@"\/podcast\/(.*)\/episode\/(.*)\/image", async (args) => {
+                return (await Db.Podcasts.Document(args[0]).ReadAsync()).Episodes.FirstOrDefault(e => e.Id == args[1]).Image;
+            });
             
             app.UseMvc();
         }

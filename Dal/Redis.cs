@@ -14,6 +14,9 @@ namespace PodcastsSyndicate.Dal
             var value = await Self.StringGetAsync(key, flags);
             return value.IsNullOrEmpty ? null : value.ToString();
         }
+
+        public static async Task<bool> KeyExistsAsync(string key, CommandFlags flags = CommandFlags.None) => await Self.KeyExistsAsync(key, flags);
+
         public static async Task<bool> KeyDeleteAsync(string key, CommandFlags flags = CommandFlags.None) => await Self.KeyDeleteAsync(key, flags);
 
         public static async Task<string> GetOrAddAsync(string key, Func<Task<string>> functor, TimeSpan? expiry = null)
