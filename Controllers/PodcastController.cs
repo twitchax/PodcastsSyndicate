@@ -5,6 +5,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using AspNetCore.Proxy;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using PodcastsSyndicate.Dal;
@@ -41,6 +42,18 @@ namespace PodcastsSyndicate.Controllers
         public async Task<IActionResult> CacheExists(string podcastId)
         {
             return Ok(await Redis.KeyExistsAsync(Podcast.GetCacheKey(podcastId)));
+        }
+
+        [ProxyRoute("podcast/{podcastId}/episode/{episodeId}/audio")]
+        public static async Task<string> GetProxyAudio(string podcastId, string episodeId)
+        {
+            return (await Db.Podcasts.Document(podcastId).ReadAsync()).Episodes.FirstOrDefault(e => e.Id == episodeId).Link;
+        }
+
+        [ProxyRoute("podcast/{podcastId}/episode/{episodeId}/image")]
+        public static async Task<string> GetProxyImage(string podcastId, string episodeId)
+        {
+            return (await Db.Podcasts.Document(podcastId).ReadAsync()).Episodes.FirstOrDefault(e => e.Id == episodeId).Image;
         }
         
         [HttpGet("/podcast/{podcastId}/rss")]
@@ -120,10 +133,10 @@ namespace PodcastsSyndicate.Controllers
 
                 // Item declaration.
 
-                //var audioLinkMask = $"http://podcastssyndicate.com/podcast/{podcast.Id}/episode/{episode.Id}/audio";
-                //var imageLinkMask = $"http://podcastssyndicate.com/podcast/{podcast.Id}/episode/{episode.Id}/image";
-                var audioLinkMask = episode.Link;
-                var imageLinkMask = episode.Image;
+                var audioLinkMask = $"http://podcastssyndicate.com/podcast/{podcast.Id}/episode/{episode.Id}/audio";
+                var imageLinkMask = $"http://podcastssyndicate.com/podcast/{podcast.Id}/episode/{episode.Id}/image";
+                //var audioLinkMask = episode.Link;
+                //var imageLinkMask = episode.Image;
 
                 var item = new XElement("item"); channel.Add(item);
                 item.Add(new XElement("title", episode.Title));
