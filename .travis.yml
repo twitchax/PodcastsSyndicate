@@ -6,6 +6,10 @@ dist: trusty
 
 services:
  - docker
+ 
+before_install:
+ - sudo apt-get update
+ - sudo apt-get install docker-engine
 
 script:
  - docker build -t twitchax/podcastssyndicate:latest .
