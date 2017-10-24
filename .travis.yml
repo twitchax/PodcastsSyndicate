@@ -12,7 +12,7 @@ before_install:
  - sudo apt-get install docker-ce
 
 script:
- - docker build -t twitchax/podcastssyndicate:latest .
+ - docker build -t twitchax/podcastssyndicate:$TRAVIS_COMMIT .
 
 after_success:
  - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
