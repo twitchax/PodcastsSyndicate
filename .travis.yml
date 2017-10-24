@@ -12,8 +12,8 @@ before_install:
  - sudo apt-get install docker-ce
 
 script:
- - docker build -t twitchax/podcastssyndicate:$TRAVIS_COMMIT .
+ - docker build -t $DOCKER_USER/podcastssyndicate:$TRAVIS_COMMIT .
 
 after_success:
- - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
- - docker push twitchax/podcastssyndicate:$TRAVIS_COMMIT
+ - docker login -e="$DOCKER_EMAIL" -u="$DOCKER_USER" -p="$DOCKER_PASS"
+ - docker push $DOCKER_USER/podcastssyndicate:$TRAVIS_COMMIT
