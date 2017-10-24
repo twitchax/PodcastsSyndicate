@@ -15,5 +15,5 @@ script:
  - docker build -t $DOCKER_USER/podcastssyndicate:$TRAVIS_COMMIT .
 
 after_success:
- - docker login -e="$DOCKER_EMAIL" -u="$DOCKER_USER" -p="$DOCKER_PASS"
+ - docker login -u $DOCKER_USER -p $DOCKER_PASS
  - docker push $DOCKER_USER/podcastssyndicate:$TRAVIS_COMMIT
