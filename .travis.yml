@@ -9,7 +9,7 @@ services:
  
 before_install:
  - sudo apt-get update
- - sudo apt-get install docker-engine
+ - sudo apt-get install docker-ce
 
 script:
  - docker build -t twitchax/podcastssyndicate:latest .
