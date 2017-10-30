@@ -8,6 +8,7 @@ using System.Xml.Linq;
 using AspNetCore.Proxy;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.WindowsAzure.Storage.Blob;
 using PodcastsSyndicate.Dal;
 using PodcastsSyndicate.Models;
 
@@ -54,6 +55,12 @@ namespace PodcastsSyndicate.Controllers
         public static async Task<string> GetProxyImage(string podcastId, string episodeId)
         {
             return (await Db.Podcasts.Document(podcastId).ReadAsync()).Episodes.FirstOrDefault(e => e.Id == episodeId).Image;
+        }
+
+        [HttpGet("podcast/{podcastId}/episode/{episodeId}/analytics")]
+        public Task<CloudBlob> GetAnalytics(string podcastId, string episodeId)
+        {
+            return Storage.GetBlobDetails($"{podcastId}/audio/{episodeId}.mp3");
         }
         
         [HttpGet("/podcast/{podcastId}/rss")]
@@ -133,10 +140,10 @@ namespace PodcastsSyndicate.Controllers
 
                 // Item declaration.
 
-                var audioLinkMask = $"http://podcastssyndicate.com/podcast/{podcast.Id}/episode/{episode.Id}/audio";
-                var imageLinkMask = $"http://podcastssyndicate.com/podcast/{podcast.Id}/episode/{episode.Id}/image";
-                //var audioLinkMask = episode.Link;
-                //var imageLinkMask = episode.Image;
+                //var audioLinkMask = $"http://podcastssyndicate.com/podcast/{podcast.Id}/episode/{episode.Id}/audio";
+                //var imageLinkMask = $"http://podcastssyndicate.com/podcast/{podcast.Id}/episode/{episode.Id}/image";
+                var audioLinkMask = episode.Link;
+                var imageLinkMask = episode.Image;
 
                 var item = new XElement("item"); channel.Add(item);
                 item.Add(new XElement("title", episode.Title));
